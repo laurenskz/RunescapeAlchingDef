@@ -26,13 +26,14 @@ public class DownloadBox extends Box
 	public static final Border BORDER = BorderFactory.createLineBorder(BORDER_COLOR, BORDER_THICKNESS);
 	
 	public static final String FILE_TXT = "File: ";
-	public static final String CANCEL_TXT = "Cancel";
+	public static final String RESTART_TXT = "Restart";
 	
 	public static final String AC_CANCEL = "cancel";
 	
 	private String filename;
 	private int downloadpercentage;
 	private JProgressBar bar;
+	private JButton restart;
 	
 	public DownloadBox(int orientation, String filename, int min, int max) 
 	{
@@ -54,8 +55,8 @@ public class DownloadBox extends Box
 		updateString();
 		this.add(bar);
 		
-		JButton cancel = new JButton(CANCEL_TXT);
-		this.add(cancel);
+		restart = new JButton(RESTART_TXT);
+		this.add(restart);
 		
 		this.setBorder(BORDER);
 	}
@@ -75,6 +76,10 @@ public class DownloadBox extends Box
 		this.downloadpercentage = downloadpercentage;
 		bar.setValue(downloadpercentage);
 		updateString();
+	}
+	
+	public JButton getRestart() {
+		return restart;
 	}
 	
 	

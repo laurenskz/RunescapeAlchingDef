@@ -2,6 +2,8 @@ package org.alch;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Comparator;
 
@@ -17,9 +19,15 @@ import ui.DownloadBox;
 
 public class Main {
 
+	private static DownloadBox box;
+	private static JSONObject items;
+	private static ArrayList<RsItem> rsItems;
+	private static boolean busy = false;
+	private static JTextPane txt;
+	private static JFrame frame;
 	
 	public static void main(String[] args) {
-		System.out.println();
+		busy = true;
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException | InstantiationException
@@ -27,10 +35,10 @@ public class Main {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		JFrame frame = new JFrame();
+		frame = new JFrame();
 		frame.setLayout(new BorderLayout());
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		JTextPane txt = new JTextPane();
+		txt = new JTextPane();
 		Font font = new Font("Arial", 0,14);
 		txt.setFont(font);
 		txt.setEditable(false);
@@ -40,18 +48,48 @@ public class Main {
 		jscroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		jscroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		frame.add(jscroll, BorderLayout.CENTER);
-		ArrayList<RsItem> rsItems = new ArrayList<RsItem>();
-		Constants.NATURE_RUNE_PRICE = Utils.getItemPrice("561").getInt("overall");
-		JSONObject items = Utils.getDatabase();
-		DownloadBox box = new DownloadBox("Rs item calc", 0, items.keySet().size());
+		rsItems = new ArrayList<RsItem>();
+		items = Utils.getDatabase();
+		box = new DownloadBox("Rs item calc", 0, items.keySet().size());
 		frame.add(box, BorderLayout.SOUTH);
 		frame.pack();
 		frame.setVisible(true);
+		box.getRestart().addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(!busy)
+					System.out.println("Recalculating");
+					calculate();
+			}
+		});
+		calculate();
+	}
+	
+	private static void calculate(){
+		System.out.println("Calculating");
+		Constants.NATURE_RUNE_PRICE = Utils.getItemPrice("561").getInt("overall");
+		rsItems.clear();
+		box.update(0);
+		items = Utils.getDatabase();
 		int count = 0;
 		JSONObject prices = Utils.getItemPrices();
+		bigLoop:
 		for(String key : items.keySet()) {
 			JSONObject item = (JSONObject) items.getJSONObject(key);
 			RsItem rsItem = new RsItem(item);
+			for (int i = 1; i <= 5; i++) {
+				if (rsItem.getName().contains("(h"+i+")")){
+					System.out.println("We found " + rsItem.getName());
+					System.out.println("continuing bigloop");
+					continue bigLoop;
+				}
+			}
+			for (int i = 1; i <= 5; i++) {
+				if (rsItem.getName().contains("(h"+i+")")){
+					System.out.println("We found " + rsItem.getName() + " again");
+				}
+			}
 			JSONObject specificItem = Utils.getItemPrice(key);
 			box.update(count++);
 			if(rsItem.getPrice()<200)continue;
@@ -84,7 +122,7 @@ public class Main {
 			if(count2++==100)break;
 		}
 		txt.setText(sb.toString());
-		System.out.println(sb);
+		busy = false;
 	}
 	
 	private static int max(int[] input) {
